@@ -4,34 +4,37 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = $_POST["email"];
     $message = $_POST["message"];
 
-    // Webhook URL de Discord (remplacez 'WEBHOOK_URL' par votre URL de webhook réelle)
-    $webhook_url = 'https://discord.com/api/webhooks/1134506169931661342/w5We2ZlQPtL3p2gzQUbeBaBeh16fAvdVlBKls6gSXbtQYFYFFbQEj-NWEExLhhIjAb0h';
+    // Construire le message à envoyer sur Discord
+    $hookUrl = "https://discord.com/api/webhooks/WEBHOOK_ID/WEBHOOK_TOKEN"; // Remplacez WEBHOOK_ID et WEBHOOK_TOKEN par les valeurs de votre webhook Discord
+    $hookMessage = "Nouveau message de contact de votre site :\n\n";
+    $hookMessage .= "Nom : " . $name . "\n";
+    $hookMessage .= "Email : " . $email . "\n";
+    $hookMessage .= "Message : " . $message;
 
-    // Construire le contenu du message à envoyer à Discord
-    $discord_message = "Nouveau message de contact :\n";
-    $discord_message .= "Nom : $name\n";
-    $discord_message .= "Email : $email\n";
-    $discord_message .= "Message : $message\n";
-
-    // Préparer les données pour l'envoi POST au webhook
-    $data = array('content' => $discord_message);
-
-    // Utiliser cURL pour envoyer les données au webhook Discord
-    $ch = curl_init($webhook_url);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
-    curl_setopt($ch, CURLOPT_POST, 1);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+    // Configurer la requête HTTP pour envoyer le message à Discord
+    $ch = curl_init($hookUrl);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_setopt($ch, CURLOPT_POSTFIELDS, array('content' => $hookMessage));
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+    // Exécuter la requête HTTP
     $response = curl_exec($ch);
+
+    // Vérifier si la requête a réussi
+    if (curl_errno($ch)) {
+        // Gérer les erreurs éventuelles
+        $error_message = curl_error($ch);
+        echo "Erreur cURL : " . $error_message;
+    } else {
+        // Afficher la réponse du serveur Discord (pour le débogage)
+        echo $response;
+    }
+
+    // Fermer la session cURL
     curl_close($ch);
 
     // Réponse JSON pour le traitement côté JavaScript (facultatif)
     $response = array('success' => true, 'message' => 'Le message a été envoyé avec succès!');
-    echo json_encode($response); 
-}
-else {
-    // Répondre par une erreur 405 si ce n'est pas une demande POST
-    http_response_code(405);
-    echo "Method Not Allowed";
+    echo json_encode($response);
 }
 ?>
